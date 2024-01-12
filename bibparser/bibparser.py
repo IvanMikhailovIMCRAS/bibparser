@@ -3,7 +3,9 @@ from typing import Optional, Tuple
 
 import bibtexparser
 from docx import Document
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+from retitle import retitle
 
 # pip install python-docx
 doc = Document()
@@ -28,6 +30,11 @@ class Article(BaseModel):
     year: int
     doi: str
     issn: str
+    
+    @field_validator("author")
+    @classmethod
+    def authors_correct(cls, st):
+        return st.replace(' and ','_').replace(' ','').replace('_',' ')
 
 
 journal_list = [
@@ -105,15 +112,15 @@ for b in bib_database.entries:
 articles_list.sort(key=lambda x: x.month, reverse=False)
 
 author_dict = {
-    "Borisov": ["Борисов", "Олег", "Владимирович"],
-    "Zhulina": ["Жулина", "Екатерина", "Борисовна"],
-    "Neelov": ["Неелов", "Игорь", "Михайлович"],
-    "Simonova": ["Симонова", "Мария", "Александровна"],
-    "Ivanov": ["Иванов", "Иван", "Владимирович"],
-    "Mikhailov": ["Михайлов", "Иван", "Викторович"],
-    "Lukiev": ["Лукиев", "Иван", "Васильевич"],
-    "Salamatova": ["Попова", "Татьяна", "Олеговна"],
-    "Popova": ["Попова", "Татьяна", "Олеговна"],
+    "Borisov,O": ["Борисов", "Олег", "Владимирович"],
+    "Zhulina,E": ["Жулина", "Екатерина", "Борисовна"],
+    "Neelov,I": ["Неелов", "Игорь", "Михайлович"],
+    "Simonova,M": ["Симонова", "Мария", "Александровна"],
+    "Ivanov,I": ["Иванов", "Иван", "Владимирович"],
+    "Mikhailov,I": ["Михайлов", "Иван", "Викторович"],
+    "Lukiev,I": ["Лукиев", "Иван", "Васильевич"],
+    "Salamatova,T": ["Попова", "Татьяна", "Олеговна"], # это не ошибка 
+    "Popova,T": ["Попова", "Татьяна", "Олеговна"],
 }
 
 tbl = []
@@ -122,7 +129,7 @@ print("всего статей: ", len(articles_list))
 
 for a in articles_list:
     row = []
-    row.append(a.title)
+    row.append(retitle(a.title))
     surname = ""
     name = ""
     patronymic = ""
